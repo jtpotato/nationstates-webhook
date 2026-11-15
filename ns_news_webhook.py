@@ -147,7 +147,7 @@ def _fetch_with_chromium(page_url: str, user_agent: str) -> tuple[str, str]:
             finally:
                 browser.close()
     except PlaywrightError as exc:
-        raise RuntimeError(f"Chromium fetch failed: {exc}") from exc
+        raise RuntimeError(f"Chromium fetch failed ({type(exc).__name__})") from None
 
 
 def run() -> int:
@@ -179,18 +179,27 @@ def run() -> int:
             )
             pending = db.execute("SELECT key,title,url,summary FROM announcements WHERE sent=0 ORDER BY rowid").fetchall()
             for key, title, url, summary in pending:
-                result = client.post(webhook, json=_discord_payload(Announcement(key, title, url, summary)))
-                result.raise_for_status()
+                try:
+                    result = client.post(webhook, json=_discord_payload(Announcement(key, title, url, summary)))
+                except httpx.HTTPError as exc:
+                    # HTTPX exceptions include the full request URL, which is
+                    # the secret webhook credential. Never log or chain them.
+                    raise RuntimeError(f"Discord delivery failed ({type(exc).__name__})") from None
+                if not result.is_success:
+                    raise RuntimeError(f"Discord rejected a message (HTTP {result.status_code})")
                 db.execute("UPDATE announcements SET sent=1 WHERE key=?", (key,))
                 LOG.info("Posted: %s", title)
         return 0
-    except (httpx.HTTPError, sqlite3.Error, RuntimeError) as exc:
+    except (sqlite3.Error, RuntimeError) as exc:
         LOG.error("Polling failed: %s", exc)
         return 1
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # HTTPX request logs include full URLs, including the webhook token.
+    logging.getLogger("httpx").disabled = True
+    logging.getLogger("httpcore").disabled = True
     sys.exit(run())
 
 
