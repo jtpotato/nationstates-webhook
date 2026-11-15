@@ -1,17 +1,38 @@
 <div align="center">
 
-# 🌐 NationStates → Discord
+# 🌐 NationStates → Discord Webhook
 
-**The headlines move. Your Discord stays in the loop.**
-
-A tiny, self-hosted Python bot that checks the NationStates announcements page,
-remembers what it has already delivered, and posts only new announcements to a Discord channel.
+A tiny, self-hosted Python bot that checks the NationStates announcements page and posts new announcements to a Discord channel's webhook.
 
 [Quick start](#-quick-start) · [How it works](#-how-it-works) · [Configuration](#️-configuration) · [Troubleshooting](#-troubleshooting)
 
 </div>
 
 ---
+
+## 🚀 Quick start
+
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). Also requires Chromium.
+
+```bash
+git clone https://github.com/jtpotato/nationstates-webhook.git
+cd nationstates-webhook
+cp .env.example .env
+```
+
+Open `.env` and paste in a Discord webhook URL. Create one in **Discord → Server Settings → Integrations → Webhooks**.
+
+```bash
+uv sync
+uv run playwright install chromium
+uv run python ns_news_webhook.py
+```
+
+The first run announces everything currently listed on the page; later runs announce only unseen entries.
+
+---
+
+the rest is lowk whatever AI wanted to write so feel free to ignore
 
 ## ✨ What it does
 
@@ -25,26 +46,7 @@ remembers what it has already delivered, and posts only new announcements to a D
 
 No bot account, gateway connection, or database server required.
 
-## 🚀 Quick start
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
-The Chromium fallback downloads a browser binary (typically a few hundred MB) on first setup.
-
-```bash
-git clone https://github.com/YOUR-USERNAME/nationstates-news-webhook.git
-cd nationstates-news-webhook
-cp .env.example .env
-```
-
-Open `.env` and paste in a Discord webhook URL. Create one in **Discord → Server Settings → Integrations → Webhooks**. Treat the URL like a password.
-
-```bash
-uv sync
-uv run playwright install chromium
-uv run python ns_news_webhook.py
-```
-
-That's it. The first run announces everything currently listed on the page; later runs announce only unseen entries.
 
 ## ⏰ Daily polling
 
@@ -93,12 +95,8 @@ If delivery fails, the pending item remains in storage and will be retried next 
 
 ## 🛡️ Privacy & safety
 
-Your webhook URL grants permission to post in its channel. Never commit `.env`, share the URL, or paste it into an issue. The included `.gitignore` excludes it and the local database.
+Your webhook URL grants permission to post in its channel. Never share it.
 
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE).
-
-<div align="center">
-  <sub>Made for curious nations and busy Discord channels. 🌍</sub>
-</div>
